@@ -1,6 +1,5 @@
 package kaaass.es2k;
 
-import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -11,6 +10,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -25,9 +25,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.event.MouseInputListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -37,9 +37,13 @@ import kaaass.es2k.crashreport.ErrorUtil;
 import kaaass.es2k.file.FileUtil;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
+import kaaass.es2k.mission.MailMission;
+import kaaass.es2k.mission.MissionManager;
 
 public class Main extends JFrame {
 	private static final long serialVersionUID = 5727395420329762298L;
+	
+	public static MissionManager missionManager = new MissionManager();
 	
 	public static boolean otherM = false;
 	public static Vector<String> cN = new Vector<String>();
@@ -50,12 +54,14 @@ public class Main extends JFrame {
 	public static JScrollPane sp;
 	public static JTable table;
 	public static TableColumnModel tableCM;
-	public static JTextField fileP;
 	public static JButton cBtn;
 	public static JButton fBtn;
 	public static JCheckBox des1;
+	public static JCheckBox des2;
 	public static JComboBox<?> comboF;
-	public static JLabel des2;
+	public static JLabel des3;
+	public static JProgressBar pb;
+	public static JButton mBtn;
 	public static JButton sBtn;
 
 	public JMenuBar mb;
@@ -87,32 +93,47 @@ public class Main extends JFrame {
 		};
 		table.setRowSelectionAllowed(true);
 		sp = new JScrollPane(table);
-		fileP = new JTextField();
-		fileP.setEditable(false);
-		fileP.setForeground(Color.DARK_GRAY);
-		fileP.setText("...");
 		cBtn = new JButton("选择文件");
 		fBtn = new JButton("选择文件夹");
-		des1 = new JCheckBox("自动将pdf文件转为");
+		des1 = new JCheckBox("将pdf文件转为");
+		des2 = new JCheckBox("全选");
 		String[] format = { ".txt", ".mobi" };
 		comboF = new JComboBox<Object>(format);
 		comboF.enableInputMethods(false);
-		des2 = new JLabel(String.format("状态:%s", "准备完毕"));
+		des3 = new JLabel("推送进度:");
+		pb = new JProgressBar();
+		mBtn = new JButton("任务队列");
 		sBtn = new JButton("推送全部");
 		menuInit();
 		btnLis();
 		this.setLayout(null);
 		this.add(des0);
 		this.add(sp);
-		this.add(fileP);
 		this.add(cBtn);
 		this.add(fBtn);
 		this.add(des1);
-		this.add(comboF);
 		this.add(des2);
+		this.add(comboF);
+		this.add(des3);
+		this.add(pb);
+		this.add(mBtn);
 		this.add(sBtn);
 	}
 	
+	private static void boundsInit() {
+		des0.setBounds(2, 0, 90, 20);
+		sp.setBounds(2, 20, 432, 273);
+		cBtn.setBounds(228, 295, 102, 20);
+		fBtn.setBounds(332, 295, 102, 20);
+		des1.setBounds(53, 294, 108, 20);
+		des2.setBounds(2, 294, 53, 20);
+		comboF.setBounds(162, 296, 60, 18);
+		des3.setBounds(2, 316, 60, 20);
+		pb.setBounds(62, 316, 188, 20);
+		mBtn.setBounds(252, 316, 90, 20);
+		sBtn.setBounds(344, 316, 90, 20);
+	}
+
 	private void menuInit() {
 		mb = new JMenuBar();
 		fileMenu = new JMenu("文件");
@@ -257,19 +278,23 @@ public class Main extends JFrame {
 		fmDel.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent evt) {
 				int[] tem = table.getSelectedRows();
+				List<Vector<?>> remove = new ArrayList<Vector<?>>();
 				if (tem.length > 0) {
 					for (int i = 0; i < tem.length; i++) {
-						data.remove(tem[i]);
+						remove.add(data.get(tem[i]));
 					}
+					for (Vector<?> v: remove) {
+						data.remove(v);
+					}
+					table.clearSelection();
 					table.updateUI();
 				}
-				
 			}
 		});
 		MouseInputListener mil = new MouseInputListener(){
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				processEvent(e);   
+				processEvent(e);
 				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0 && !e.isControlDown() && !e.isShiftDown()) {
 					popup.show(table, e.getX(), e.getY());
                 } 
@@ -294,9 +319,18 @@ public class Main extends JFrame {
 			}
 
 			@Override
-			public void mousePressed(MouseEvent arg0) {
-				// TODO 自动生成的方法存根
-				
+			public void mousePressed(MouseEvent e) {
+				//processEvent(e);
+				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0 && !e.isControlDown() && !e.isShiftDown()) {
+					int row = (int) Math.floor(e.getY() / table.getRowHeight());
+					int[] tem = table.getSelectedRows();
+					for (int i: tem) {
+						if (i == row) {
+							return;
+						}
+					}
+					table.changeSelection(row, 0, false, false);
+				}
 			}
 
 			@Override
@@ -353,7 +387,6 @@ public class Main extends JFrame {
 							return;
 						}
 						addListItem(f, SendType.READY);
-						fileP.setText(f.getAbsolutePath());
 					} else {
 						JOptionPane.showMessageDialog(null, "请选择支持的文件！(*.doc、"
 								+ "*.docx、*.rtf、*.txt、*.mobi、*.pdf)", "错误",
@@ -371,7 +404,6 @@ public class Main extends JFrame {
 				c.setApproveButtonText("批量加入");
 				c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				if (c.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					fileP.setText(c.getSelectedFile().getAbsolutePath());
 					File[] f = c.getSelectedFile().listFiles();
 					for (int i = 0; i < f.length; i++) {
 						if (f[i].getName().endsWith(".doc") ||
@@ -429,7 +461,7 @@ public class Main extends JFrame {
 									file.getName().endsWith(".mobi") ||
 									file.getName().endsWith(".pdf")) {
 								if (file.length() > 31457280) {
-									break;
+									continue;
 								}
 								addListItem(file, SendType.READY);
 							}
@@ -444,18 +476,6 @@ public class Main extends JFrame {
 				}
 			}
 		});
-	}
-	
-	private static void boundsInit() {
-		des0.setBounds(2, 0, 90, 20);
-		sp.setBounds(2, 20, 432, 273);
-		fileP.setBounds(2, 295, 238, 20);
-		cBtn.setBounds(242, 295, 90, 20);
-		fBtn.setBounds(334, 295, 100, 20);
-		des1.setBounds(2, 317, 135, 20);
-		comboF.setBounds(137, 318, 60, 18);
-		des2.setBounds(200, 316, 150, 20);
-		sBtn.setBounds(344, 316, 90, 20);
 	}
 	
 	public static void main(String[] args) {
@@ -476,86 +496,53 @@ public class Main extends JFrame {
 		v.add(file.getAbsolutePath());
 		v.add(bytes2kb(file.length()));
 		v.add(type.toString());
-		data.add(v);
-		table.updateUI();
+		if (data.indexOf(v) < 0) {
+			data.add(v);
+			table.updateUI();
+		}
 	}
 	
 	public void send (int[] item) {
 		float total = 0F;
 		int last = 0;
+		List<Vector<?>> remove = new ArrayList<Vector<?>>();
 		if (item.length <= 0) {
 			JOptionPane.showMessageDialog(null, "请选择至少一项！", "错误",
 					JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		des2.setText(String.format("状态:%s", "正在推送"));
 		for (int i = 0; i < item.length; i++) {
 			total += kb2mb(data.get(item[i]).get(2));
 			if (total >= 30F) {
 				total = 0F;
 				String[] file = new String[i - last];
+				remove.clear();
 				for (int ii = 0; ii < file.length; ii++) {
 					file[ii] = data.get(ii + last).get(1);
-					if (file[ii].endsWith(".pdf") && des1.isSelected()) {
-						switch(comboF.getSelectedIndex()){
-						case 0:
-							try {
-								FileUtil.pdf2txt(file[ii]);
-							} catch (Exception e) {
-								e.printStackTrace();
-								(new ErrorUtil(e)).dealWithException();
-							}
-							file[ii] = file[ii].substring(0, file[ii].length() - 4) + ".txt";
-							break;
-						}
-					}
-					data.get(ii + last).add(3, SendType.SENDING.toString());
+					remove.add(data.get(ii + last));
 					table.updateUI();
 				}
 				last = i;
-				MailUtil mail = null;
-				Result result = null;
-				mail = new MailUtil(false);
-				result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
-				if (!result.isSuccess()) {
-					(new ErrorUtil(result)).dealWithResult(); 
-					for (int ii = 0; ii < file.length; ii++) {
-						data.get(ii + last).add(3, SendType.ERROR.toString());
-						table.updateUI();
-					}
-				} else {
-					System.out.println("Send ok!");
-					for (int ii = 0; ii < file.length; ii++) {
-						data.get(ii + last).add(3, SendType.OK.toString());
-						table.updateUI();
-					}
+				for (Vector<?> v: remove) {
+					data.remove(v);
 				}
+				table.updateUI();
+				new MailMission(file);
 			}
 		}
 		String[] file = new String[item.length - last];
+		remove.clear();
 		for (int ii = 0; ii < file.length; ii++) {
 			file[ii] = data.get(ii + last).get(1);
-			data.get(ii + last).add(3, SendType.SENDING.toString());
+			remove.add(data.get(ii + last));
 			table.updateUI();
 		}
-		MailUtil mail = null;
-		Result result = null;
-		mail = new MailUtil(false);
-		result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
-		if (!result.isSuccess()) {
-			(new ErrorUtil(result)).dealWithResult(); 
-			for (int ii = 0; ii < file.length; ii++) {
-				data.get(ii + last).add(3, SendType.ERROR.toString());
-				table.updateUI();
-			}
-		} else {
-			System.out.println("Send ok!");
-			for (int ii = 0; ii < file.length; ii++) {
-				data.get(ii + last).add(3, SendType.OK.toString());
-				table.updateUI();
-			}
+		for (Vector<?> v: remove) {
+			data.remove(v);
 		}
-		des2.setText(String.format("状态:%s", "完毕"));
+		table.updateUI();
+		new MailMission(file);
+		missionManager.runMission();
 	}
 	
 	public void clear () {
@@ -598,7 +585,7 @@ public class Main extends JFrame {
 		return Float.valueOf(kb.substring(0, kb.length() - 3));
     }
 	
-	enum SendType {
+	public enum SendType {
 		READY(0), SENDING(1), OK(2), ERROR(3);
 		
 		private int index;
