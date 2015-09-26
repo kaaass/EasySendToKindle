@@ -23,17 +23,16 @@ public class ErrorUtil {
 
 	public String getString() {
 		if (!result.isSuccess()) {
-			String tem[] = result.getError().split(" ");
-			String code = tem[1] + " " + tem[2];
-			for (int i = 0; i < FileUtil.mErrorCode.length; i++) {
-				if (code.equals(FileUtil.mErrorCode[i])) {
-					return FileUtil.mErrorInfo[i];
-				}
+			String code = result.e.toString();
+			code = code.substring(code.indexOf(":") + 2, code.length() - 1);
+			if (code.startsWith("Could not connect to SMTP host:")) {
+				return "不能连接至发信服务器，请检查网络连接或者smtp服务器是否正确。";
 			}
+			return FileUtil.getInfo(code);
 		}
 		return "未知错误";
 	}
-
+	
 	public void dealWithResult() {
 		if (!result.isSuccess()) {
 			String str = (new CrashReport(result.e, getString())).saveCrashReport();

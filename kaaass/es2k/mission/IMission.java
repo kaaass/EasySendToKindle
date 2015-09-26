@@ -40,6 +40,10 @@ public abstract class IMission extends Thread {
 		Main.missionManager.endMission(id);
 	}
 	
+	public void pause () {
+		yield();
+	}
+	
 	public boolean equals (Object o) {
 		if (o instanceof IMission) {
 			return ((IMission) o).id == this.id;

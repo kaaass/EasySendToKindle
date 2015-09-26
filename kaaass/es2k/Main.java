@@ -25,7 +25,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.event.MouseInputListener;
@@ -60,7 +59,7 @@ public class Main extends JFrame {
 	public static JCheckBox des2;
 	public static JComboBox<?> comboF;
 	public static JLabel des3;
-	public static JProgressBar pb;
+	public static JLabel des4;
 	public static JButton mBtn;
 	public static JButton sBtn;
 
@@ -101,7 +100,7 @@ public class Main extends JFrame {
 		comboF = new JComboBox<Object>(format);
 		comboF.enableInputMethods(false);
 		des3 = new JLabel("推送进度:");
-		pb = new JProgressBar();
+		des4 = new JLabel("完毕");
 		mBtn = new JButton("任务队列");
 		sBtn = new JButton("推送全部");
 		menuInit();
@@ -115,7 +114,7 @@ public class Main extends JFrame {
 		this.add(des2);
 		this.add(comboF);
 		this.add(des3);
-		this.add(pb);
+		this.add(des4);
 		this.add(mBtn);
 		this.add(sBtn);
 	}
@@ -129,7 +128,7 @@ public class Main extends JFrame {
 		des2.setBounds(2, 294, 53, 20);
 		comboF.setBounds(162, 296, 60, 18);
 		des3.setBounds(2, 316, 60, 20);
-		pb.setBounds(62, 316, 188, 20);
+		des4.setBounds(62, 316, 188, 20);
 		mBtn.setBounds(252, 316, 90, 20);
 		sBtn.setBounds(344, 316, 90, 20);
 	}
@@ -330,6 +329,8 @@ public class Main extends JFrame {
 						}
 					}
 					table.changeSelection(row, 0, false, false);
+				} else if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0) {
+					des2.setSelected(false);
 				}
 			}
 
@@ -404,20 +405,7 @@ public class Main extends JFrame {
 				c.setApproveButtonText("批量加入");
 				c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				if (c.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					File[] f = c.getSelectedFile().listFiles();
-					for (int i = 0; i < f.length; i++) {
-						if (f[i].getName().endsWith(".doc") ||
-								f[i].getName().endsWith(".docx") ||
-								f[i].getName().endsWith(".rtf") ||
-								f[i].getName().endsWith(".txt") ||
-								f[i].getName().endsWith(".mobi") ||
-								f[i].getName().endsWith(".pdf")) {
-							if (f[i].length() > 31457280) {
-								break;
-							}
-							addListItem(f[i], SendType.READY);
-						}
-					}
+					addDic(c.getSelectedFile());
 				}
 			}
 		});
@@ -445,6 +433,15 @@ public class Main extends JFrame {
 				}
 			}
 		});
+		des2.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				if (des2.isSelected()) {
+					table.selectAll();
+				} else {
+					table.clearSelection();
+				}
+			}
+		});
 		new DropTarget (this, DnDConstants.ACTION_COPY_OR_MOVE, new DropTargetAdapter() {
 			@SuppressWarnings("unchecked")
 			@Override
@@ -464,6 +461,8 @@ public class Main extends JFrame {
 									continue;
 								}
 								addListItem(file, SendType.READY);
+							} else if (file.isDirectory()) {
+								addDic(file);
 							}
 						}
 						dtde.dropComplete(true);
@@ -476,6 +475,30 @@ public class Main extends JFrame {
 				}
 			}
 		});
+	}
+	
+	public static void addDic (File f) {
+		if (f.isDirectory()) {
+			File[] tem = f.listFiles();
+			if (tem == null) {
+				return;
+			}
+			for (int i = 0; i < tem.length; i++) {
+				if (tem[i].getName().endsWith(".doc") ||
+						tem[i].getName().endsWith(".docx") ||
+						tem[i].getName().endsWith(".rtf") ||
+						tem[i].getName().endsWith(".txt") ||
+						tem[i].getName().endsWith(".mobi") ||
+						tem[i].getName().endsWith(".pdf")) {
+					if (tem[i].length() > 31457280) {
+						break;
+					}
+					addListItem(tem[i], SendType.READY);
+				} else if (tem[i].isDirectory()) {
+					addDic(tem[i]);
+				}
+			}
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -503,46 +526,51 @@ public class Main extends JFrame {
 	}
 	
 	public void send (int[] item) {
-		float total = 0F;
-		int last = 0;
-		List<Vector<?>> remove = new ArrayList<Vector<?>>();
-		if (item.length <= 0) {
-			JOptionPane.showMessageDialog(null, "请选择至少一项！", "错误",
-					JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		for (int i = 0; i < item.length; i++) {
-			total += kb2mb(data.get(item[i]).get(2));
-			if (total >= 30F) {
-				total = 0F;
-				String[] file = new String[i - last];
-				remove.clear();
-				for (int ii = 0; ii < file.length; ii++) {
-					file[ii] = data.get(ii + last).get(1);
-					remove.add(data.get(ii + last));
-					table.updateUI();
-				}
-				last = i;
-				for (Vector<?> v: remove) {
-					data.remove(v);
-				}
-				table.updateUI();
-				new MailMission(file);
+		try {
+			float total = 0F;
+			int last = 0;
+			List<Vector<?>> remove = new ArrayList<Vector<?>>();
+			if (item.length <= 0) {
+				JOptionPane.showMessageDialog(null, "请选择至少一项！", "错误",
+						JOptionPane.WARNING_MESSAGE);
+				return;
 			}
-		}
-		String[] file = new String[item.length - last];
-		remove.clear();
-		for (int ii = 0; ii < file.length; ii++) {
-			file[ii] = data.get(ii + last).get(1);
-			remove.add(data.get(ii + last));
+			for (int i = 0; i < item.length; i++) {
+				total += kb2mb(data.get(item[i]).get(2));
+				if (total >= 30F) {
+					total = 0F;
+					String[] file = new String[i - last];
+					remove.clear();
+					for (int ii = 0; ii < file.length; ii++) {
+						file[ii] = data.get(ii + last).get(1);
+						remove.add(data.get(ii + last));
+						table.updateUI();
+					}
+					last = i;
+					for (Vector<?> v: remove) {
+						data.remove(v);
+					}
+					table.updateUI();
+					new MailMission(file);
+				}
+			}
+			String[] file = new String[item.length - last];
+			remove.clear();
+			for (int ii = 0; ii < file.length; ii++) {
+				file[ii] = data.get(ii + last).get(1);
+				remove.add(data.get(ii + last));
+				table.updateUI();
+			}
+			for (Vector<?> v: remove) {
+				data.remove(v);
+			}
 			table.updateUI();
+			new MailMission(file);
+			missionManager.runMission();
+		} catch (Exception e) {
+			e.printStackTrace();
+			(new ErrorUtil(e)).dealWithException();
 		}
-		for (Vector<?> v: remove) {
-			data.remove(v);
-		}
-		table.updateUI();
-		new MailMission(file);
-		missionManager.runMission();
 	}
 	
 	public void clear () {

@@ -6,6 +6,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import kaaass.es2k.Main;
+import kaaass.es2k.crashreport.ErrorUtil;
 
 public class MissionManager {
 	public List<IMission> mList = new ArrayList<IMission>();
@@ -32,7 +33,8 @@ public class MissionManager {
 	public void runMission () {
 		todoList.get(0).start();
 		running = true;
-		Main.pb.setValue((sendCounter[0] - todoList.size()) / sendCounter[0] * 100);
+		Main.des4.setText("执行中，已完成" + (sendCounter[0] - 1) + "件，剩余" 
+				+ todoList.size() + "件");
 	}
 	
 	public void endMission (int id) {
@@ -45,8 +47,24 @@ public class MissionManager {
 		if (todoList.isEmpty()) {
 			JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
 			running = false;
+			Main.des4.setText("完毕。已完成" + sendCounter[0] + "件，失败" 
+					+ sendCounter[1] + "件");
+			sendCounter = new int[2];
 		} else {
 			this.runMission();
 		}
+	}
+	
+	public void pause () {
+		try {
+			todoList.get(0).wait();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			(new ErrorUtil(e)).dealWithException();
+		}
+	}
+	
+	public void resume () {
+		todoList.get(0).notify();
 	}
 }

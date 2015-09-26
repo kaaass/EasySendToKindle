@@ -20,15 +20,15 @@ import org.apache.pdfbox.util.PDFTextStripper;
 import kaaass.es2k.crashreport.ErrorUtil;
 
 public class FileUtil {
-	public static String[] mErrorCode = new String[41];
-	public static String[] mErrorInfo = new String[41];
-
+	public static String[] mErrorCode = new String[47];
+	public static String[] mErrorInfo = new String[47];
+	
 	private File file;
-
+	
 	public FileUtil(File file) {
 		this.file = file;
 	}
-
+	
 	public Object[] readLine() throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		InputStreamReader isr = new InputStreamReader(fis, "GBK"); // UTF-8
@@ -51,6 +51,17 @@ public class FileUtil {
 		tem[0] = a;
 		tem[1] = b;
 		return tem;
+	}
+	
+	public static String getInfo(String code) {
+		int i = 0;
+		for (String s: mErrorCode) {
+			if (code.equals(s)) {
+				return mErrorInfo[i];
+			}
+			i++;
+		}
+		return "Î´Öª´íÎó";
 	}
 
 	public static void loadFile() {
