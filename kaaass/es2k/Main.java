@@ -37,12 +37,14 @@ import kaaass.es2k.file.FileUtil;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
 import kaaass.es2k.mission.MailMission;
+import kaaass.es2k.mission.MissionFrame;
 import kaaass.es2k.mission.MissionManager;
 
 public class Main extends JFrame {
 	private static final long serialVersionUID = 5727395420329762298L;
 	
 	public static MissionManager missionManager = new MissionManager();
+	public static MissionFrame missionFrame = new MissionFrame();
 	
 	public static boolean otherM = false;
 	public static Vector<String> cN = new Vector<String>();
@@ -409,6 +411,11 @@ public class Main extends JFrame {
 				}
 			}
 		});
+		mBtn.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent evt) {
+				missionFrame.show();
+			}
+		});
 		sBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent evt) {
 				clear();
@@ -435,6 +442,12 @@ public class Main extends JFrame {
 		});
 		des2.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent arg0) {
+				if (data.size() <= 0) {
+					JOptionPane.showMessageDialog(null, "ÁÐ±í¿Õ£¡", "´íÎó",
+							JOptionPane.WARNING_MESSAGE);
+					des2.setSelected(false);
+					return;
+				}
 				if (des2.isSelected()) {
 					table.selectAll();
 				} else {
@@ -566,7 +579,9 @@ public class Main extends JFrame {
 			}
 			table.updateUI();
 			new MailMission(file);
-			missionManager.runMission();
+			if (!missionManager.running) {
+				missionManager.runMission();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			(new ErrorUtil(e)).dealWithException();

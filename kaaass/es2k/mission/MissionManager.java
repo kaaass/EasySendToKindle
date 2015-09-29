@@ -6,11 +6,11 @@ import java.util.List;
 import javax.swing.JOptionPane;
 
 import kaaass.es2k.Main;
-import kaaass.es2k.crashreport.ErrorUtil;
 
 public class MissionManager {
 	public List<IMission> mList = new ArrayList<IMission>();
-	public List<IMission> todoList = new ArrayList<IMission>();
+	public List<Integer> todoList = new ArrayList<Integer>();
+	public List<Integer> eList = new ArrayList<Integer>();
 	public int id = 0;
 	int[] sendCounter = new int[2];
 	public boolean running = false;
@@ -22,26 +22,36 @@ public class MissionManager {
 		} else {
 			mList.set(id, m);
 		}
-		return id;
+		return id++;
 	}
 	
 	public void todo (int id) {
-		todoList.add(mList.get(id));
+		todoList.add(id);
 		sendCounter[0]++;
 	}
 	
 	public void runMission () {
-		todoList.get(0).start();
-		running = true;
+		if (!running && !eList.isEmpty()) {
+			for (int i: eList) {
+				todoList.add(i);
+				mList.get(i).reDo();
+			}
+		}
+		if (!running && !todoList.isEmpty()) {
+			mList.get(todoList.get(0)).start();
+			running = true;
+		}
 		Main.des4.setText("执行中，已完成" + (sendCounter[0] - 1) + "件，剩余" 
 				+ todoList.size() + "件");
+		Main.missionFrame.redraw();
 	}
 	
 	public void endMission (int id) {
-		todoList.remove(mList.get(id));
+		todoList.remove(0);
 		if (mList.get(id) instanceof MailMission) {
 			if (!((MailMission) mList.get(id)).getResult().isSuccess()) {
 				sendCounter[1]++;
+				eList.add(id);
 			}
 		}
 		if (todoList.isEmpty()) {
@@ -53,18 +63,24 @@ public class MissionManager {
 		} else {
 			this.runMission();
 		}
+		Main.missionFrame.redraw();
 	}
 	
-	public void pause () {
-		try {
-			todoList.get(0).wait();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			(new ErrorUtil(e)).dealWithException();
+	public void clear () {
+		for (int i = 0; i < mList.size(); i++) {
+			if (todoList.indexOf(i) < 0 && eList.indexOf(i) < 0) {
+				mList.set(i, null);
+			}
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
+	public void pause () {
+		this.mList.get(this.todoList.get(0)).suspend();
+	}
+	
+	@SuppressWarnings("deprecation")
 	public void resume () {
-		todoList.get(0).notify();
+		this.mList.get(this.todoList.get(0)).resume();
 	}
 }

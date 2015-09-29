@@ -20,9 +20,17 @@ public abstract class IMission extends Thread {
 	
 	public abstract void onEnd();
 	
+	public abstract void reDo();
+	
+	public abstract String getTitle();
+	
 	public abstract String getDesc();
 	
+	public abstract String getStates();
+	
 	public abstract Object getType();
+	
+	public abstract String getTypeName();
 	
 	public void start () {
 		this.onStart();

@@ -61,17 +61,18 @@ public class MailMission extends IMission {
 	
 	@Override
 	public void onRun() {
-		mail = new MailUtil(false);
-		result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
+		this.mail = new MailUtil(false);
+		this.result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
 		if (!result.isSuccess()) {
-			int i = 0;
-			while (result.isSuccess() && i < 2) {
+			Main.missionFrame.redraw();
+			for (int i = 0; i < 3; i++) {
 				result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
-				i++;
+				Main.missionFrame.redraw();
+				if (result.isSuccess()) {
+					break;
+				}
 			}
-			if (!result.isSuccess()) {
-				(new ErrorUtil(result)).dealWithResult();
-			}
+			(new ErrorUtil(result)).dealWithResult();
 		}
 	}
 	
@@ -93,10 +94,20 @@ public class MailMission extends IMission {
 
 	@Override
 	public String getDesc() {
-		// TODO 自动生成的方法存根
-		return null;
+		StringBuilder stringbuilder = new StringBuilder();
+		stringbuilder.append("\n任务类型：推送任务");
+		stringbuilder.append("\n推送文件：");
+		for (String s: file) {
+			File f = new File(s);
+			stringbuilder.append("\n  " + f.getName());
+		}
+		stringbuilder.append("\n文件位置：");
+		stringbuilder.append("\n  " + file[0] + " 等");
+		stringbuilder.append("\n推送状态：");
+		stringbuilder.append("\n  " + getStates());
+		return stringbuilder.toString();
 	}
-
+	
 	@Override
 	public Object getType() {
 		return new MailMission();
@@ -104,5 +115,44 @@ public class MailMission extends IMission {
 	
 	public Result getResult() {
 		return result;
+	}
+
+	@Override
+	public String getTitle() {
+		File f = new File(file[0]);
+		return f.getName() + " 等文件";
+	}
+
+	@Override
+	public String getStates() {
+		if (this.result != null) {
+			if (this.result.isSuccess()) {
+				return "已完成";
+			} else {
+				if (Main.missionManager.todoList.isEmpty()) {
+					return "推送错误";
+				} else {
+					if (Main.missionManager.todoList.get(0) == this.id) {
+						return "推送错误,正在重试";
+					} else {
+						return "推送错误";
+					}
+				}
+			}
+		} else if (Main.missionManager.todoList.get(0) == this.id) {
+			return "推送中";
+		} else {
+			return "排队中";
+		}
+	}
+
+	@Override
+	public String getTypeName() {
+		return "推送任务";
+	}
+
+	@Override
+	public void reDo() {
+		this.result = null;
 	}
 }
