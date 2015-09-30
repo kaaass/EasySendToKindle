@@ -12,6 +12,11 @@ public class RightRegister {
 	
 	private RegistryKey rkey = null;
 	
+	public RightRegister() {
+		rkey = Registry.openSubkey(Registry.HKEY_CLASSES_ROOT, this.dir, 
+				RegistryKey.ACCESS_WRITE);
+	}
+	
 	public RightRegister(String dir) {
 		this.dir = dir;
 		rkey = Registry.openSubkey(Registry.HKEY_CLASSES_ROOT, this.dir, 
@@ -30,8 +35,8 @@ public class RightRegister {
 	public void install () {
 		try {
 			this.createSubDir("ES2K", "", "将此文件推送给Kindle");
-			this.createSubDir("Command", "", "-send \"%1\"");
-		} catch (RegistryException e) {
+			this.createSubDir("Command", "", System.getProperty("java.class.path") + " -send \"%1\"");
+		} catch (Exception e) {
 			e.printStackTrace();
 			(new ErrorUtil(e)).dealWithException();
 		}
@@ -40,7 +45,7 @@ public class RightRegister {
 	public void uninstall () {
 		try {
 			rkey.deleteSubKey("ES2K");
-		} catch (RegistryException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			(new ErrorUtil(e)).dealWithException();
 		}

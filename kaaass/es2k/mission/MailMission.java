@@ -21,6 +21,14 @@ public class MailMission extends IMission {
 		
 	}
 	
+	public MailMission (String par) {
+		super();
+		String[] s = new String[1];
+		s[0] = par;
+		this.file = s;
+		Main.missionManager.todo(this.id);
+	}
+	
 	public MailMission (String[] par) {
 		super();
 		this.file = par;
@@ -61,17 +69,22 @@ public class MailMission extends IMission {
 	
 	@Override
 	public void onRun() {
-		this.mail = new MailUtil(false);
+		this.mail = new MailUtil(Main.isDebug);
 		this.result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
 		if (!result.isSuccess()) {
+			boolean origin = Main.otherM;
 			Main.missionFrame.redraw();
 			for (int i = 0; i < 3; i++) {
+				if (i == 2) {
+					Main.otherM = true;
+				}
 				result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
 				Main.missionFrame.redraw();
 				if (result.isSuccess()) {
 					break;
 				}
 			}
+			Main.otherM = origin;
 			(new ErrorUtil(result)).dealWithResult();
 		}
 	}
