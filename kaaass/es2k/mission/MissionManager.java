@@ -1,11 +1,13 @@
 package kaaass.es2k.mission;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import kaaass.es2k.Main;
+import kaaass.es2k.crashreport.ErrorUtil;
 
 public class MissionManager {
 	public List<IMission> mList = new ArrayList<IMission>();
@@ -55,7 +57,41 @@ public class MissionManager {
 			}
 		}
 		if (todoList.isEmpty()) {
-			JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
+			switch(MissionFrame.combo0.getSelectedIndex()){
+			case 0:
+				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
+				break;
+			case 1:
+				System.exit(0);
+				break;
+			case 2:
+				try {
+					Runtime.getRuntime().exec("Shutdown /s");
+				} catch (IOException e) {
+					e.printStackTrace();
+					(new ErrorUtil(e)).dealWithException();
+				} 
+				break;
+			case 3:
+				try {
+					Runtime.getRuntime().exec("Shutdown /l");
+				} catch (IOException e) {
+					e.printStackTrace();
+					(new ErrorUtil(e)).dealWithException();
+				} 
+				break;
+			case 4:
+				try {
+					Runtime.getRuntime().exec("Shutdown /r");
+				} catch (IOException e) {
+					e.printStackTrace();
+					(new ErrorUtil(e)).dealWithException();
+				} 
+				break;
+			default:
+				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
+				break;
+			}
 			running = false;
 			Main.des4.setText("完毕。已完成" + sendCounter[0] + "件，失败" 
 					+ sendCounter[1] + "件");

@@ -5,7 +5,9 @@ import java.awt.event.ActionListener;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -29,6 +31,8 @@ public class MissionFrame extends JFrame {
 	public static JButton deleteBtn;
 	public static JButton infoBtn;
 	public static JButton startBtn;
+	public static JLabel lable0;
+	public static JComboBox<?> combo0;
 	
 	public JMenuBar mb;
 	public JMenu fileMenu;
@@ -53,6 +57,9 @@ public class MissionFrame extends JFrame {
 		deleteBtn = new JButton("清空");
 		infoBtn = new JButton("详细信息");
 		startBtn = new JButton("重试任务");
+		lable0 = new JLabel("所有任务完成后：");
+		String[] action = {"无", "关闭程序", "关机", "注销", "重启"};
+		combo0 = new JComboBox<String>(action);
 		initMenu();
 		initBounds();
 		initListener();
@@ -61,6 +68,8 @@ public class MissionFrame extends JFrame {
 		this.add(deleteBtn);
 		this.add(infoBtn);
 		this.add(startBtn);
+		this.add(lable0);
+		this.add(combo0);
 		this.setLayout(null);
 		this.setJMenuBar(mb);
 		this.setSize(560, 402);
@@ -83,6 +92,8 @@ public class MissionFrame extends JFrame {
 	
 	public void initBounds () {
 		sp.setBounds(2, 0, 552, 326);
+		lable0.setBounds(2, 326, 105, 20);
+		combo0.setBounds(104, 326, 80, 20);
 		infoBtn.setBounds(186, 326, 90, 20);
 		startBtn.setBounds(278, 326, 90, 20);
 		pauseBtn.setBounds(370, 326, 90, 20);
