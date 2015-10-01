@@ -280,6 +280,8 @@ public class Main extends JFrame {
 						+ "\n作者:KAAAsS"
 						+ "\n版本:1.0.2.1509_Alpha"
 						+ "\n建立于Java 1.8"
+						+ "\nGitHub已经上线，欢迎前来Fork:"
+						+ "\nhttps://github.com/kaaass/EasySendToKindle"
 						+ "\n感谢网易、新浪邮箱的服务支持。", "关于", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
