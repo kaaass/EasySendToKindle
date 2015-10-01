@@ -14,7 +14,7 @@ public class MissionManager {
 	public List<Integer> todoList = new ArrayList<Integer>();
 	public List<Integer> eList = new ArrayList<Integer>();
 	public int id = 0;
-	int[] sendCounter = new int[2];
+	int sendCounter = 0;
 	public boolean running = false;
 	
 	public int add (IMission m) {
@@ -29,21 +29,20 @@ public class MissionManager {
 	
 	public void todo (int id) {
 		todoList.add(id);
-		sendCounter[0]++;
 	}
 	
 	public void runMission () {
 		if (!running && !eList.isEmpty()) {
 			for (int i: eList) {
 				todoList.add(i);
-				mList.get(i).reDo();
+				mList.set(i, mList.get(i).restart());
 			}
 		}
 		if (!running && !todoList.isEmpty()) {
 			mList.get(todoList.get(0)).start();
 			running = true;
 		}
-		Main.des4.setText("执行中，已完成" + (sendCounter[0] - 1) + "件，剩余" 
+		Main.des4.setText("执行中，已完成" + (mList.size() - todoList.size()) + "件，剩余" 
 				+ todoList.size() + "件");
 		Main.missionFrame.redraw();
 	}
@@ -52,14 +51,14 @@ public class MissionManager {
 		todoList.remove(0);
 		if (mList.get(id) instanceof MailMission) {
 			if (!((MailMission) mList.get(id)).getResult().isSuccess()) {
-				sendCounter[1]++;
+				sendCounter++;
 				eList.add(id);
 			}
 		}
 		if (todoList.isEmpty()) {
 			switch(MissionFrame.combo0.getSelectedIndex()){
 			case 0:
-				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
+				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", mList.size(), sendCounter));
 				break;
 			case 1:
 				System.exit(0);
@@ -89,13 +88,12 @@ public class MissionManager {
 				} 
 				break;
 			default:
-				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", sendCounter[0], sendCounter[1]));
+				JOptionPane.showMessageDialog(null, String.format("任务完成!推送 %d 次，失败 %d 次。", mList.size(), sendCounter));
 				break;
 			}
 			running = false;
-			Main.des4.setText("完毕。已完成" + sendCounter[0] + "件，失败" 
-					+ sendCounter[1] + "件");
-			sendCounter = new int[2];
+			Main.des4.setText("完毕。已完成" + mList.size() + "件，失败" 
+					+ sendCounter + "件");
 		} else {
 			this.runMission();
 		}

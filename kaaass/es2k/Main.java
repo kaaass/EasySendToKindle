@@ -173,7 +173,6 @@ public class Main extends JFrame {
 	private void menuListener() {
 		fmSend.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent evt) {
-				clear();
 				int[] tem = new int[data.size()];
 				for (int i = 0; i < tem.length; i++) {
 					tem[i] = i;
@@ -286,8 +285,20 @@ public class Main extends JFrame {
 		});
 		pmSend.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent evt) {
-				clear();
-				send(table.getSelectedRows());
+				if (table.getSelectedRows().length == data.size()) {
+					int[] tem = new int[data.size()];
+					for (int i = 0; i < tem.length; i++) {
+						tem[i] = i;
+					}
+					if (tem.length <= 0) {
+						JOptionPane.showMessageDialog(null, "ÁÐ±í¿Õ£¡", "´íÎó",
+								JOptionPane.WARNING_MESSAGE);
+						return;
+					}
+					send(tem);
+				} else {
+					send(table.getSelectedRows());
+				}
 			}
 		});
 		pmDel.addActionListener(new ActionListener(){
@@ -427,7 +438,6 @@ public class Main extends JFrame {
 		});
 		sBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent evt) {
-				clear();
 				int[] tem = new int[data.size()];
 				for (int i = 0; i < tem.length; i++) {
 					tem[i] = i;
@@ -603,21 +613,6 @@ public class Main extends JFrame {
 			e.printStackTrace();
 			(new ErrorUtil(e)).dealWithException();
 		}
-	}
-	
-	public void clear () {
-		int i = 0;
-		while(true){
-			if (i > data.size() - 1) {
-				break;
-			}
-			if (data.get(i).get(3).equals(SendType.OK.toString())) {
-				data.remove(i);
-				i = 0;
-			}
-			i++;
-		}
-		table.updateUI();
 	}
 	
 	public static String bytes2kb(long bytes) {  

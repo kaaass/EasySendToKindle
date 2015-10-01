@@ -8,6 +8,7 @@ import kaaass.es2k.Main;
 import kaaass.es2k.Main.SendType;
 import kaaass.es2k.crashreport.ErrorUtil;
 import kaaass.es2k.file.FileUtil;
+import kaaass.es2k.file.ZipCompressor;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
 
@@ -16,25 +17,26 @@ public class MailMission extends IMission {
 	List<File> fileT = new ArrayList<File>();
 	MailUtil mail = null;
 	Result result = null;
-	
-	MailMission () {
-		
+	boolean hasMobi = false;
+
+	MailMission() {
+
 	}
-	
-	public MailMission (String par) {
+
+	public MailMission(String par) {
 		super();
 		String[] s = new String[1];
 		s[0] = par;
 		this.file = s;
 		Main.missionManager.todo(this.id);
 	}
-	
-	public MailMission (String[] par) {
+
+	public MailMission(String[] par) {
 		super();
 		this.file = par;
 		Main.missionManager.todo(this.id);
 	}
-	
+
 	@Override
 	public SendType getInfo() {
 		if (this.isAlive()) {
@@ -49,8 +51,10 @@ public class MailMission extends IMission {
 
 	@Override
 	public void onStart() {
+		// String tempPath = System.getProperty("java.io.tmpdir");
 		for (int ii = 0; ii < file.length; ii++) {
-			if (file[ii].endsWith(".pdf") && Main.des1.isSelected()) {
+			if (file[ii].toLowerCase().endsWith(".pdf")
+					&& Main.des1.isSelected()) {
 				switch (Main.comboF.getSelectedIndex()) {
 				case 0:
 					try {
@@ -59,18 +63,47 @@ public class MailMission extends IMission {
 						e.printStackTrace();
 						(new ErrorUtil(e)).dealWithException();
 					}
-					file[ii] = file[ii].substring(0, file[ii].length() - 4) + ".txt";
+					file[ii] = file[ii].substring(0, file[ii].length() - 4)
+							+ ".txt";
 					fileT.add(new File(file[ii]));
 					break;
 				}
 			}
+			if (file[ii].toLowerCase().endsWith(".mobi")) {
+				FileUtil.makeDirs("mobi/");
+				File a = new File(file[ii]);
+				FileUtil.copyFileTo(a, new File("mobi/" + a.getName()));
+				hasMobi = true;
+			}
+		}
+		if (hasMobi) {
+			try {
+				(new ZipCompressor("mobi.zip")).compress("mobi/");
+			} catch (RuntimeException e) {
+				e.printStackTrace();
+				(new ErrorUtil(e)).dealWithException();
+			}
+			fileT.add(new File("mobi.zip"));
+			List<String> a = new ArrayList<String>();
+			for (String s : file) {
+				if (!s.toLowerCase().endsWith(".mobi")) {
+					a.add(s);
+				}
+			}
+			a.add((new File("mobi.zip")).getAbsolutePath());
+			String[] b = new String[a.size()];
+			for (int i = 0; i < a.size(); i++) {
+				b[i] = a.get(i);
+			}
+			file = b;
 		}
 	}
-	
+
 	@Override
 	public void onRun() {
 		this.mail = new MailUtil(Main.isDebug);
-		this.result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
+		this.result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>",
+				file);
 		if (!result.isSuccess()) {
 			boolean origin = Main.otherM;
 			Main.missionFrame.redraw();
@@ -78,7 +111,8 @@ public class MailMission extends IMission {
 				if (i == 2) {
 					Main.otherM = true;
 				}
-				result = mail.send("Kindle推送邮件", "<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
+				result = mail.send("Kindle推送邮件",
+						"<p>本邮件是程序自动推送的邮件，请勿回复，谢谢！</p>", file);
 				Main.missionFrame.redraw();
 				if (result.isSuccess()) {
 					break;
@@ -88,9 +122,15 @@ public class MailMission extends IMission {
 			(new ErrorUtil(result)).dealWithResult();
 		}
 	}
-	
+
 	@Override
 	public void onEnd() {
+		for (File f : fileT) {
+			f.delete();
+		}
+		if (hasMobi) {
+			FileUtil.deleteDirectory("mobi/");
+		}
 		if (!result.isSuccess()) {
 			System.out.println("Send error!");
 		} else {
@@ -100,9 +140,6 @@ public class MailMission extends IMission {
 
 	@Override
 	public void onStop() {
-		for (File f: fileT) {
-			f.delete();
-		}
 	}
 
 	@Override
@@ -110,7 +147,7 @@ public class MailMission extends IMission {
 		StringBuilder stringbuilder = new StringBuilder();
 		stringbuilder.append("\n任务类型：推送任务");
 		stringbuilder.append("\n推送文件：");
-		for (String s: file) {
+		for (String s : file) {
 			File f = new File(s);
 			stringbuilder.append("\n  " + f.getName());
 		}
@@ -120,12 +157,12 @@ public class MailMission extends IMission {
 		stringbuilder.append("\n  " + getStates());
 		return stringbuilder.toString();
 	}
-	
+
 	@Override
 	public Object getType() {
 		return new MailMission();
 	}
-	
+
 	public Result getResult() {
 		return result;
 	}
@@ -165,7 +202,7 @@ public class MailMission extends IMission {
 	}
 
 	@Override
-	public void reDo() {
-		this.result = null;
+	public IMission restart() {
+		return new MailMission(this.file);
 	}
 }

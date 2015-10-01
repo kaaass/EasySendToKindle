@@ -194,18 +194,18 @@ public class MailUtil {
 	
 	public void addTach(String fileList[], Multipart multipart)
 			throws MessagingException, UnsupportedEncodingException {
-		for (int index = 0; index < fileList.length; index++) {
+		for (int i = 0; i < fileList.length; i++) {
 			MimeBodyPart mailArchieve = new MimeBodyPart();
-			FileDataSource fds = new FileDataSource(fileList[index]);
+			FileDataSource fds = new FileDataSource(fileList[i]);
 			mailArchieve.setDataHandler(new DataHandler(fds));
-			mailArchieve.setFileName(MimeUtility.encodeText(fds.getName(), "GBK", "B"));
+			mailArchieve.setFileName(MimeUtility.encodeText(fds.getName(), "utf-8", null));
 			multipart.addBodyPart(mailArchieve);
 		}
 	}
 	
 	public static InputStream getInputStream(FileInputStream fileInput) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] buffer = new byte[1024*4];
+		byte[] buffer = new byte[1024 * 4];
 		int n = -1;
 		InputStream inputStream = null;
 		try {

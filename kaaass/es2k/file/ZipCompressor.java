@@ -12,7 +12,7 @@ public class ZipCompressor {
 	public ZipCompressor(String outPathName) {
 		zipFile = new File(outPathName);
 	}
-
+	
 	public void compress(String inPathName) throws RuntimeException {
 		File srcdir = new File(inPathName);
 		if (!srcdir.exists()){
@@ -26,6 +26,7 @@ public class ZipCompressor {
 		fileSet.setProject(prj);
 		fileSet.setDir(srcdir);
 		fileSet.setIncludes("*.log");
+		fileSet.setIncludes("*.mobi");
 		zip.addFileset(fileSet);
 		zip.execute();
 	}

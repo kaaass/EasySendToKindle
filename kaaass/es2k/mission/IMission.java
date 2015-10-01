@@ -20,8 +20,6 @@ public abstract class IMission extends Thread {
 	
 	public abstract void onEnd();
 	
-	public abstract void reDo();
-	
 	public abstract String getTitle();
 	
 	public abstract String getDesc();
@@ -31,6 +29,8 @@ public abstract class IMission extends Thread {
 	public abstract Object getType();
 	
 	public abstract String getTypeName();
+	
+	public abstract IMission restart();
 	
 	public void start () {
 		this.onStart();

@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 
 import javax.swing.JOptionPane;
 
@@ -22,13 +23,13 @@ import kaaass.es2k.crashreport.ErrorUtil;
 public class FileUtil {
 	public static String[] mErrorCode = new String[47];
 	public static String[] mErrorInfo = new String[47];
-	
+
 	private File file;
-	
+
 	public FileUtil(File file) {
 		this.file = file;
 	}
-	
+
 	public Object[] readLine() throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		InputStreamReader isr = new InputStreamReader(fis, "GBK"); // UTF-8
@@ -52,10 +53,10 @@ public class FileUtil {
 		tem[1] = b;
 		return tem;
 	}
-	
+
 	public static String getInfo(String code) {
 		int i = 0;
-		for (String s: mErrorCode) {
+		for (String s : mErrorCode) {
 			if (code.equals(s)) {
 				return mErrorInfo[i];
 			}
@@ -73,12 +74,13 @@ public class FileUtil {
 				properties.createNewFile();
 				fileWriter = new FileWriter("mail.properties");
 				String str;
-				if ((str = JOptionPane.showInputDialog("请输入您的Kindle推送邮箱:"
-						+ "\nKindle推送邮箱可以在您的“Kindle->设置->设备选项->个性化您的Kindle”中找到")).equals("")) {
+				if ((str = JOptionPane
+						.showInputDialog("请输入您的Kindle推送邮箱:"
+								+ "\nKindle推送邮箱可以在您的“Kindle->设置->设备选项->个性化您的Kindle”中找到"))
+						.equals("")) {
 					str = "example@kindle.cn";
 				}
-				JOptionPane.showMessageDialog(null, "如何设置推送邮箱："
-						+ "\n1.打开亚马逊官网"
+				JOptionPane.showMessageDialog(null, "如何设置推送邮箱：" + "\n1.打开亚马逊官网"
 						+ "\n2.打开我的账户->管理我的内容和设备->设置"
 						+ "\n3.在“已认可的发件人电子邮箱列表”下点击“添加认可的电子邮箱”"
 						+ "\n4.输入推送邮箱(默认为:es2kindle@163.com)"
@@ -89,8 +91,7 @@ public class FileUtil {
 						+ "mail.sender.username=es2kindle@163.com\n"
 						+ "#邮箱密码(不一定是登录密码 )\n"
 						+ "mail.sender.password=vruzzyqprrwjyieh\n\n"
-						+ "#Kindle推送邮箱\n"
-						+ "es2k.mail.username=" + str);
+						+ "#Kindle推送邮箱\n" + "es2k.mail.username=" + str);
 			} catch (IOException e) {
 				e.printStackTrace();
 				(new ErrorUtil(e)).dealWithException();
@@ -139,16 +140,19 @@ public class FileUtil {
 				String fileName = url.getFile();
 				if (fileName.length() > 4) {
 					File outputFile = new File(fileName.substring(0,
-							fileName.length() - 4) + ".txt");
+							fileName.length() - 4)
+							+ ".txt");
 					textFile = outputFile.getName();
 				}
 			} catch (MalformedURLException e) {
 				document = PDDocument.load(pdfFile);
 				if (pdfFile.length() > 4) {
-					textFile = pdfFile.substring(0, pdfFile.length() - 4) + ".txt";
+					textFile = pdfFile.substring(0, pdfFile.length() - 4)
+							+ ".txt";
 				}
 			}
-			output = new OutputStreamWriter(new FileOutputStream(textFile), encoding);
+			output = new OutputStreamWriter(new FileOutputStream(textFile),
+					encoding);
 			PDFTextStripper stripper = null;
 			stripper = new PDFTextStripper();
 			stripper.setSortByPosition(sort);
@@ -164,4 +168,71 @@ public class FileUtil {
 			}
 		}
 	}
+
+	public static void copyFileTo(File s, File t) {
+		FileInputStream fi = null;
+		FileOutputStream fo = null;
+		FileChannel in = null;
+		FileChannel out = null;
+		try {
+			fi = new FileInputStream(s);
+			fo = new FileOutputStream(t);
+			in = fi.getChannel();
+			out = fo.getChannel();
+			in.transferTo(0, in.size(), out);
+		} catch (IOException e) {
+			e.printStackTrace();
+			(new ErrorUtil(e)).dealWithException();
+		} finally {
+			try {
+				fi.close();
+				in.close();
+				fo.close();
+				out.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				(new ErrorUtil(e)).dealWithException();
+			}
+		}
+	}
+
+	public static void makeDirs(String filePath) {
+		if (!(new File(filePath).isDirectory())) {
+			new File(filePath).mkdir();
+		}
+	}
+	
+	/** 
+	 * 删除目录（文件夹）以及目录下的文件 
+	 * @param   sPath 被删除目录的文件路径 
+	 * @return  目录删除成功返回true，否则返回false 
+	 */  
+	public static boolean deleteDirectory(String sPath) {  
+		boolean flag = false;
+	    if (!sPath.endsWith(File.separator)) {  
+	        sPath = sPath + File.separator;  
+	    }  
+	    File dirFile = new File(sPath);  
+	    if (!dirFile.exists() || !dirFile.isDirectory()) {  
+	        return false;  
+	    }  
+	    flag = true;  
+	    File[] files = dirFile.listFiles();  
+	    for (int i = 0; i < files.length; i++) {  
+	        if (files[i].isFile()) {  
+	            flag = files[i].delete(); 
+	            if (!flag) break;  
+	        }  
+	        else {  
+	            flag = deleteDirectory(files[i].getAbsolutePath());  
+	            if (!flag) break;  
+	        }  
+	    }  
+	    if (!flag) return false;  
+	    if (dirFile.delete()) {  
+	        return true;  
+	    } else {  
+	        return false;  
+	    }  
+	}  
 }
