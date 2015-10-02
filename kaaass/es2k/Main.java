@@ -34,7 +34,7 @@ import javax.swing.table.TableColumnModel;
 
 import kaaass.es2k.crashreport.ErrorUtil;
 import kaaass.es2k.file.FileUtil;
-import kaaass.es2k.file.RightRegister;
+//import kaaass.es2k.file.RightRegister;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
 import kaaass.es2k.mission.MailMission;
@@ -46,7 +46,7 @@ public class Main extends JFrame {
 	
 	public static MissionManager missionManager = new MissionManager();
 	public static MissionFrame missionFrame = new MissionFrame();
-	public static RightRegister rightRegister = new RightRegister();
+	//public static RightRegister rightRegister = new RightRegister();
 	public static boolean isDebug = false;
 	
 	public static boolean otherM = false;
@@ -196,9 +196,9 @@ public class Main extends JFrame {
 							JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane
 							.QUESTION_MESSAGE, null, options, options[0]); 
 					if (m == JOptionPane.YES_OPTION) {
-						rightRegister.install();
+						//rightRegister.install();
 					} else if (m == JOptionPane.NO_OPTION) {
-						rightRegister.uninstall();
+						//rightRegister.uninstall();
 					}
 				}
 			}
@@ -278,8 +278,10 @@ public class Main extends JFrame {
 				JOptionPane.showMessageDialog(null, "关于"
 						+ "\n程序名:Easy Send To Kindle"
 						+ "\n作者:KAAAsS"
-						+ "\n版本:1.0.2.1509_Alpha"
-						+ "\n建立于Java 1.8"
+						+ "\n版本:1.0.3.1002_RC"
+						+ "\n建立于Java 1.6"
+						+ "\nGitHub地址:github.com/kaaass/EasySendToKindle"
+						+ "\n欢迎有能力的朋友来fork。"
 						+ "\n感谢网易、新浪邮箱的服务支持。", "关于", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
@@ -524,6 +526,24 @@ public class Main extends JFrame {
 	}
 	
 	public static void main(String[] args) {
+		if (args.length != 0) {
+			if (args.length == 2) {
+				if (args[0].equals("-send")) {
+					if (isRegular(args[1])) {
+						new MailMission(args[1]);
+						missionManager.runMission();
+					} else {
+						JOptionPane.showMessageDialog(null, "非Kindle支持文件！", 
+								"错误", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			} else if (args.length == 1 && args[0].equals("-debug")) {
+				isDebug = true;
+			} else {
+				JOptionPane.showMessageDialog(null, "启动命令错误!请检查是否选择多个文件。", "错误",
+						JOptionPane.ERROR_MESSAGE);
+			}
+		}
 		Main m = new Main();
 		boundsInit();
 		m.setSize(442, 392);
@@ -533,26 +553,6 @@ public class Main extends JFrame {
 		m.setTitle("Easy Send To Kindle");
 		m.setResizable(false);
 		FileUtil.loadFile();
-		if (args.length != 0) {
-			if (args.length == 2) {
-				switch (args[0]) {
-				case "-send":
-					if (isRegular(args[1])) {
-						new MailMission(args[1]);
-						missionManager.runMission();
-					} else {
-						JOptionPane.showMessageDialog(null, "非Kindle支持文件！", 
-								"错误", JOptionPane.ERROR_MESSAGE);
-					}
-					break;
-				}
-			} else if (args.length == 1 && args[0].equals("-debug")) {
-				isDebug = true;
-			} else {
-				JOptionPane.showMessageDialog(null, "启动命令错误!请检查是否选择多个文件。", "错误",
-						JOptionPane.ERROR_MESSAGE);
-			}
-		}
 	}
 	
 	public static void addListItem(File file, SendType type) {
@@ -664,14 +664,13 @@ public class Main extends JFrame {
 		}
 		
 		public static SendType toEnum(String str) {
-			switch(str){
-			case "准备完毕":
+			if (str.equals("准备完毕")) {
 				return SendType.READY;
-			case "推送中":
+			} else if (str.equals("推送中")) {
 				return SendType.SENDING;
-			case "推送成功":
+			} else if (str.equals("推送成功")) {
 				return SendType.OK;
-			case "推送失败":
+			} else if (str.equals("推送失败")) {
 				return SendType.ERROR;
 			}
 			return null;
