@@ -10,8 +10,6 @@ import javax.swing.JOptionPane;
 import kaaass.es2k.Main;
 import kaaass.es2k.file.FileUtil;
 import kaaass.es2k.mail.MailUtil;
-import kaaass.es2k.mail.MailUtil.Result;
-import kaaass.es2k.mission.IMission;
 
 public class ErrorUtil {
 	private MailUtil.Result result = null;

@@ -17,6 +17,7 @@ public class TimeDialog {
 	public final static int NO_BUTTON = 1;
 	public final static int TIMEOUT = 2;
 	
+	@SuppressWarnings("unused")
 	private String message = null;
 	private int secends = 0;
 	private JLabel label = new JLabel();

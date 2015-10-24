@@ -36,7 +36,7 @@ import javax.swing.table.TableColumnModel;
 
 import kaaass.es2k.crashreport.ErrorUtil;
 import kaaass.es2k.file.FileUtil;
-import kaaass.es2k.file.StreamGobbler;
+//import kaaass.es2k.file.StreamGobbler;
 //import kaaass.es2k.file.RightRegister;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
