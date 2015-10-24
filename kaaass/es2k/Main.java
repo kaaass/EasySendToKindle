@@ -8,6 +8,8 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -34,6 +36,7 @@ import javax.swing.table.TableColumnModel;
 
 import kaaass.es2k.crashreport.ErrorUtil;
 import kaaass.es2k.file.FileUtil;
+//import kaaass.es2k.file.StreamGobbler;
 //import kaaass.es2k.file.RightRegister;
 import kaaass.es2k.mail.MailUtil;
 import kaaass.es2k.mail.MailUtil.Result;
@@ -43,17 +46,18 @@ import kaaass.es2k.mission.MissionManager;
 
 public class Main extends JFrame {
 	private static final long serialVersionUID = 5727395420329762298L;
-	
+
 	public static MissionManager missionManager = new MissionManager();
 	public static MissionFrame missionFrame = new MissionFrame();
-	//public static RightRegister rightRegister = new RightRegister();
+	// public static RightRegister rightRegister = new RightRegister();
 	public static boolean isDebug = false;
-	
+
 	public static boolean otherM = false;
 	public static Vector<String> cN = new Vector<String>();
 	public static Vector<Vector<String>> data = new Vector<Vector<String>>();
-	public static String lastDir = FileSystemView.getFileSystemView().getHomeDirectory().getAbsolutePath();
-	
+	public static String lastDir = FileSystemView.getFileSystemView()
+			.getHomeDirectory().getAbsolutePath();
+
 	public static JLabel des0;
 	public static JScrollPane sp;
 	public static JTable table;
@@ -88,10 +92,10 @@ public class Main extends JFrame {
 		cN.add("大小");
 		cN.add("状态");
 		des0 = new JLabel("推送文件列表:");
-		table = new JTable(data, cN){
+		table = new JTable(data, cN) {
 			private static final long serialVersionUID = 1L;
-			
-			public boolean isCellEditable(int row, int column) { 
+
+			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
@@ -99,9 +103,9 @@ public class Main extends JFrame {
 		sp = new JScrollPane(table);
 		cBtn = new JButton("选择文件");
 		fBtn = new JButton("选择文件夹");
-		des1 = new JCheckBox("将pdf文件转为");
+		des1 = new JCheckBox("将支持文件转为");
 		des2 = new JCheckBox("全选");
-		String[] format = { ".txt", ".mobi" };
+		String[] format = { ".mobi", ".txt" };
 		comboF = new JComboBox<Object>(format);
 		comboF.enableInputMethods(false);
 		des3 = new JLabel("推送进度:");
@@ -122,16 +126,33 @@ public class Main extends JFrame {
 		this.add(des4);
 		this.add(mBtn);
 		this.add(sBtn);
+		this.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				if (missionManager.running) {
+					if (JOptionPane.showConfirmDialog(null, "正在推送中，是否确定退出？",
+							"退出", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+						FileUtil.deleteDirectory("mobi/");
+						File f = new File("mobi.zip");
+						if (f.exists()) {
+							f.delete();
+						}
+						super.windowClosing(e);
+					}
+				} else {
+					super.windowClosing(e);
+				}
+			}
+		});
 	}
-	
+
 	private static void boundsInit() {
 		des0.setBounds(2, 0, 90, 20);
 		sp.setBounds(2, 20, 432, 273);
 		cBtn.setBounds(228, 295, 102, 20);
 		fBtn.setBounds(332, 295, 102, 20);
-		des1.setBounds(53, 294, 108, 20);
-		des2.setBounds(2, 294, 53, 20);
-		comboF.setBounds(162, 296, 60, 18);
+		des1.setBounds(47, 294, 116, 20);
+		des2.setBounds(0, 294, 53, 20);
+		comboF.setBounds(164, 296, 60, 18);
 		des3.setBounds(2, 316, 60, 20);
 		des4.setBounds(62, 316, 188, 20);
 		mBtn.setBounds(252, 316, 90, 20);
@@ -169,9 +190,9 @@ public class Main extends JFrame {
 		mb.add(aboutMenu);
 		this.setJMenuBar(mb);
 	}
-	
+
 	private void menuListener() {
-		fmSend.addActionListener(new ActionListener(){
+		fmSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				int[] tem = new int[data.size()];
 				for (int i = 0; i < tem.length; i++) {
@@ -185,30 +206,31 @@ public class Main extends JFrame {
 				send(tem);
 			}
 		});
-		fmOption.addActionListener(new ActionListener(){
+		fmOption.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				otherM = JOptionPane.showConfirmDialog(null,
 						"是否使用备用源推送？(重启程序恢复，不推荐使用，仅作备用源)", "选项",
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 				if (isDebug) {
-					Object[] options ={ "激活", "卸载", "取消" };  
-					int m = JOptionPane.showOptionDialog(null, "右键系统菜单设置(测试)", "标题",
-							JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane
-							.QUESTION_MESSAGE, null, options, options[0]); 
+					Object[] options = { "激活", "卸载", "取消" };
+					int m = JOptionPane.showOptionDialog(null, "右键系统菜单设置(测试)",
+							"标题", JOptionPane.YES_NO_CANCEL_OPTION,
+							JOptionPane.QUESTION_MESSAGE, null, options,
+							options[0]);
 					if (m == JOptionPane.YES_OPTION) {
-						//rightRegister.install();
+						// rightRegister.install();
 					} else if (m == JOptionPane.NO_OPTION) {
-						//rightRegister.uninstall();
+						// rightRegister.uninstall();
 					}
 				}
 			}
 		});
-		fmClose.addActionListener(new ActionListener(){
+		fmClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				System.exit(0);
 			}
 		});
-		hmDebug.addActionListener(new ActionListener(){
+		hmDebug.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				MailUtil mail = new MailUtil(false);
 				if (!(new File("CrashReport/").isDirectory())) {
@@ -248,44 +270,44 @@ public class Main extends JFrame {
 					if (!r.isSuccess()) {
 						(new ErrorUtil(r)).dealWithResult();
 					} else {
-						JOptionPane.showMessageDialog(null, "反馈成功！开发者将会尽快跟您取得联系。");
+						JOptionPane.showMessageDialog(null,
+								"反馈成功！开发者将会尽快跟您取得联系。");
 					}
 				}
 			}
 		});
-		hmHelp.addActionListener(new ActionListener(){
+		hmHelp.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				JOptionPane.showMessageDialog(null, "如何使用："
-						+ "\n注：请先将程序推送邮箱设置为认可邮箱！方法见下一条。"
-						+ "\n1.点击选择按钮选择您的电子书"
+						+ "\n注：请先将程序推送邮箱设置为认可邮箱！方法见下一条。" + "\n1.点击选择按钮选择您的电子书"
 						+ "\n2.选择完后，确认书目显示在列表内"
 						+ "\n3.点击推送按钮，书籍会自动推送到您的Kindle上");
-				JOptionPane.showMessageDialog(null, "如何设置推送邮箱："
-						+ "\n1.打开亚马逊官网"
+				JOptionPane.showMessageDialog(null, "如何设置推送邮箱：" + "\n1.打开亚马逊官网"
 						+ "\n2.打开我的账户->管理我的内容和设备->设置"
 						+ "\n3.在“已认可的发件人电子邮箱列表”下点击“添加认可的电子邮箱”"
 						+ "\n4.输入推送邮箱(默认为:es2kindle@163.com)"
 						+ "\n5.(备用为:es2kindle@sina.com)");
-				JOptionPane.showMessageDialog(null, "如何解决错误："
-						+ "\n1.用文本文档打开同目录下的mail.properties文件"
-						+ "\n2.根据提示修改项目"
-						+ "\n3.Kindle推送邮箱可以在您的“Kindle->设置->设备选项->个性化您的Kindle”中找到"
-						+ "\n4.若还不能解决，请通过菜单->帮助->反馈错误来通知开发者以解决。");
+				JOptionPane
+						.showMessageDialog(
+								null,
+								"如何解决错误："
+										+ "\n1.用文本文档打开同目录下的mail.properties文件"
+										+ "\n2.根据提示修改项目"
+										+ "\n3.Kindle推送邮箱可以在您的“Kindle->设置->设备选项->个性化您的Kindle”中找到"
+										+ "\n4.若还不能解决，请通过菜单->帮助->反馈错误来通知开发者以解决。");
 			}
 		});
-		amAbout.addActionListener(new ActionListener(){
+		amAbout.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				JOptionPane.showMessageDialog(null, "关于"
-						+ "\n程序名:Easy Send To Kindle"
-						+ "\n作者:KAAAsS"
-						+ "\n版本:1.0.3.1002_RC"
-						+ "\n建立于Java 1.6"
+						+ "\n程序名:Easy Send To Kindle" + "\n作者:KAAAsS"
+						+ "\n版本:1.1.0.1002_beta" + "\n建立于Java 1.6"
 						+ "\nGitHub地址:github.com/kaaass/EasySendToKindle"
-						+ "\n欢迎有能力的朋友来fork。"
-						+ "\n感谢网易、新浪邮箱的服务支持。", "关于", JOptionPane.INFORMATION_MESSAGE);
+						+ "\n欢迎有能力的朋友来fork。" + "\n感谢网易、新浪邮箱的服务支持。", "关于",
+						JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
-		pmSend.addActionListener(new ActionListener(){
+		pmSend.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				if (table.getSelectedRows().length == data.size()) {
 					int[] tem = new int[data.size()];
@@ -303,7 +325,7 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		pmDel.addActionListener(new ActionListener(){
+		pmDel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				int[] tem = table.getSelectedRows();
 				List<Vector<?>> remove = new ArrayList<Vector<?>>();
@@ -311,7 +333,7 @@ public class Main extends JFrame {
 					for (int i = 0; i < tem.length; i++) {
 						remove.add(data.get(tem[i]));
 					}
-					for (Vector<?> v: remove) {
+					for (Vector<?> v : remove) {
 						data.remove(v);
 					}
 					table.clearSelection();
@@ -319,40 +341,42 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		MouseInputListener mil = new MouseInputListener(){
+		MouseInputListener mil = new MouseInputListener() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				processEvent(e);
-				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0 && !e.isControlDown() && !e.isShiftDown()) {
+				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0
+						&& !e.isControlDown() && !e.isShiftDown()) {
 					popup.show(table, e.getX(), e.getY());
-                } 
+				}
 			}
 
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				// TODO 自动生成的方法存根
-				
+
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
 				// TODO 自动生成的方法存根
-				
+
 			}
 
 			@Override
 			public void mouseExited(MouseEvent arg0) {
 				// TODO 自动生成的方法存根
-				
+
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
-				//processEvent(e);
-				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0 && !e.isControlDown() && !e.isShiftDown()) {
+				// processEvent(e);
+				if ((e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0
+						&& !e.isControlDown() && !e.isShiftDown()) {
 					int row = (int) Math.floor(e.getY() / table.getRowHeight());
 					int[] tem = table.getSelectedRows();
-					for (int i: tem) {
+					for (int i : tem) {
 						if (i == row) {
 							return;
 						}
@@ -366,32 +390,33 @@ public class Main extends JFrame {
 			@Override
 			public void mouseDragged(MouseEvent arg0) {
 				// TODO 自动生成的方法存根
-				
+
 			}
 
 			@Override
 			public void mouseMoved(MouseEvent arg0) {
 				// TODO 自动生成的方法存根
-				
+
 			}
-			
+
 		};
 		table.addMouseListener(mil);
 		table.addMouseMotionListener(mil);
 	}
-	
+
 	private void btnLis() {
-		cBtn.addActionListener(new ActionListener(){
+		cBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				JFileChooser c = new JFileChooser();
-				FileFilter ff = new FileFilter(){
+				FileFilter ff = new FileFilter() {
 					public boolean accept(File f) {
 						if (f.isDirectory()) {
 							return true;
 						}
 						return isRegular(f);
-					} 
-					public String getDescription(){
+					}
+
+					public String getDescription() {
 						return "Kindle支持文件";
 					}
 				};
@@ -403,11 +428,15 @@ public class Main extends JFrame {
 				c.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				if (c.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					File f = c.getSelectedFile();
-					lastDir = f.getAbsolutePath().substring(0, f.getAbsolutePath()
-							.length() - f.getName().length());
+					lastDir = f.getAbsolutePath()
+							.substring(
+									0,
+									f.getAbsolutePath().length()
+											- f.getName().length());
 					if (ff.accept(f)) {
 						if (f.length() > 31457280) {
-							JOptionPane.showMessageDialog(null, "单文件大小不能大于30MB！", "错误",
+							JOptionPane.showMessageDialog(null,
+									"单文件大小不能大于30MB！", "错误",
 									JOptionPane.WARNING_MESSAGE);
 							return;
 						}
@@ -420,11 +449,12 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		fBtn.addActionListener(new ActionListener(){
+		fBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser c = new JFileChooser();
 				c.setMultiSelectionEnabled(false);
-				c.setCurrentDirectory(FileSystemView.getFileSystemView().getHomeDirectory());
+				c.setCurrentDirectory(FileSystemView.getFileSystemView()
+						.getHomeDirectory());
 				c.setDialogTitle("请选择推送文件所在的文件夹...");
 				c.setApproveButtonText("批量加入");
 				c.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -433,12 +463,12 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		mBtn.addActionListener(new ActionListener(){
+		mBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				missionFrame.show();
 			}
 		});
-		sBtn.addActionListener(new ActionListener(){
+		sBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent evt) {
 				int[] tem = new int[data.size()];
 				for (int i = 0; i < tem.length; i++) {
@@ -452,16 +482,16 @@ public class Main extends JFrame {
 				send(tem);
 			}
 		});
-		comboF.addActionListener(new ActionListener(){
+		comboF.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (comboF.getSelectedIndex() == 1) {
-					JOptionPane.showMessageDialog(null, "转*.mobi由于种种原因不对外开放。", "提示",
-							JOptionPane.WARNING_MESSAGE);
-					comboF.setSelectedIndex(0);
+					JOptionPane.showMessageDialog(null, "转*.txt可能会失败而无限推送中！",
+							"提示", JOptionPane.WARNING_MESSAGE);
+					//comboF.setSelectedIndex(0);
 				}
 			}
 		});
-		des2.addActionListener(new ActionListener(){
+		des2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (data.size() <= 0) {
 					JOptionPane.showMessageDialog(null, "列表空！", "错误",
@@ -476,37 +506,40 @@ public class Main extends JFrame {
 				}
 			}
 		});
-		new DropTarget (this, DnDConstants.ACTION_COPY_OR_MOVE, new DropTargetAdapter() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void drop (DropTargetDropEvent dtde) {
-				try {
-					if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-						dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-						List<File> list = (List<File>)(dtde.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
-						for(File file: list) {
-							if (isRegular(file)) {
-								if (file.length() > 31457280) {
-									continue;
+		new DropTarget(this, DnDConstants.ACTION_COPY_OR_MOVE,
+				new DropTargetAdapter() {
+					@SuppressWarnings("unchecked")
+					@Override
+					public void drop(DropTargetDropEvent dtde) {
+						try {
+							if (dtde.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+								dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+								List<File> list = (List<File>) (dtde
+										.getTransferable()
+										.getTransferData(DataFlavor.javaFileListFlavor));
+								for (File file : list) {
+									if (isRegular(file)) {
+										if (file.length() > 31457280) {
+											continue;
+										}
+										addListItem(file, SendType.READY);
+									} else if (file.isDirectory()) {
+										addDic(file);
+									}
 								}
-								addListItem(file, SendType.READY);
-							} else if (file.isDirectory()) {
-								addDic(file);
+								dtde.dropComplete(true);
+							} else {
+								dtde.rejectDrop();
 							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							(new ErrorUtil(e)).dealWithException();
 						}
-						dtde.dropComplete(true);
-					} else {
-                    dtde.rejectDrop();
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					(new ErrorUtil(e)).dealWithException();
-				}
-			}
-		});
+				});
 	}
-	
-	public static void addDic (File f) {
+
+	public static void addDic(File f) {
 		if (f.isDirectory()) {
 			File[] tem = f.listFiles();
 			if (tem == null) {
@@ -524,7 +557,7 @@ public class Main extends JFrame {
 			}
 		}
 	}
-	
+
 	public static void main(String[] args) {
 		if (args.length != 0) {
 			if (args.length == 2) {
@@ -533,15 +566,15 @@ public class Main extends JFrame {
 						new MailMission(args[1]);
 						missionManager.runMission();
 					} else {
-						JOptionPane.showMessageDialog(null, "非Kindle支持文件！", 
+						JOptionPane.showMessageDialog(null, "非Kindle支持文件！",
 								"错误", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 			} else if (args.length == 1 && args[0].equals("-debug")) {
 				isDebug = true;
 			} else {
-				JOptionPane.showMessageDialog(null, "启动命令错误!请检查是否选择多个文件。", "错误",
-						JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(null, "启动命令错误!请检查是否选择多个文件。",
+						"错误", JOptionPane.ERROR_MESSAGE);
 			}
 		}
 		Main m = new Main();
@@ -554,7 +587,7 @@ public class Main extends JFrame {
 		m.setResizable(false);
 		FileUtil.loadFile();
 	}
-	
+
 	public static void addListItem(File file, SendType type) {
 		Vector<String> v = new Vector<String>();
 		v.add(file.getName());
@@ -566,8 +599,8 @@ public class Main extends JFrame {
 			table.updateUI();
 		}
 	}
-	
-	public void send (int[] item) {
+
+	public void send(int[] item) {
 		try {
 			float total = 0F;
 			int last = 0;
@@ -589,7 +622,7 @@ public class Main extends JFrame {
 						table.updateUI();
 					}
 					last = i;
-					for (Vector<?> v: remove) {
+					for (Vector<?> v : remove) {
 						data.remove(v);
 					}
 					table.updateUI();
@@ -603,7 +636,7 @@ public class Main extends JFrame {
 				remove.add(data.get(ii + last));
 				table.updateUI();
 			}
-			for (Vector<?> v: remove) {
+			for (Vector<?> v : remove) {
 				data.remove(v);
 			}
 			table.updateUI();
@@ -614,43 +647,43 @@ public class Main extends JFrame {
 			(new ErrorUtil(e)).dealWithException();
 		}
 	}
-	
-	public static String bytes2kb(long bytes) {  
-        BigDecimal filesize = new BigDecimal(bytes);  
-        BigDecimal megabyte = new BigDecimal(1024 * 1024);  
-        float returnValue = filesize.divide(megabyte, 4, BigDecimal.ROUND_UP)  
-                .floatValue();  
-        if (returnValue > 1)  
-            return (returnValue + " MB");  
-        BigDecimal kilobyte = new BigDecimal(1024);  
-        returnValue = filesize.divide(kilobyte, 4, BigDecimal.ROUND_UP)  
-                .floatValue();  
-        return (returnValue + " KB");  
-    }
-	
-	public static float kb2mb(String kb) {  
+
+	public static String bytes2kb(long bytes) {
+		BigDecimal filesize = new BigDecimal(bytes);
+		BigDecimal megabyte = new BigDecimal(1024 * 1024);
+		float returnValue = filesize.divide(megabyte, 4, BigDecimal.ROUND_UP)
+				.floatValue();
+		if (returnValue > 1)
+			return (returnValue + " MB");
+		BigDecimal kilobyte = new BigDecimal(1024);
+		returnValue = filesize.divide(kilobyte, 4, BigDecimal.ROUND_UP)
+				.floatValue();
+		return (returnValue + " KB");
+	}
+
+	public static float kb2mb(String kb) {
 		if (kb.endsWith(" KB")) {
 			float f = Float.valueOf(kb.substring(0, kb.length() - 3));
-			BigDecimal filesize = new BigDecimal(f);  
-			BigDecimal megabyte = new BigDecimal(1024);  
-			float returnValue = filesize.divide(megabyte, 7, BigDecimal.ROUND_UP)  
-					.floatValue();   
-			return (returnValue); 
+			BigDecimal filesize = new BigDecimal(f);
+			BigDecimal megabyte = new BigDecimal(1024);
+			float returnValue = filesize.divide(megabyte, 7,
+					BigDecimal.ROUND_UP).floatValue();
+			return (returnValue);
 		}
 		return Float.valueOf(kb.substring(0, kb.length() - 3));
-    }
-	
+	}
+
 	public enum SendType {
 		READY(0), SENDING(1), OK(2), ERROR(3);
-		
+
 		private int index;
-		
-		SendType (int index) {
+
+		SendType(int index) {
 			this.index = index;
 		}
-		
-		public String toString () {
-			switch(this.index){
+
+		public String toString() {
+			switch (this.index) {
 			case 0:
 				return "准备完毕";
 			case 1:
@@ -662,7 +695,7 @@ public class Main extends JFrame {
 			}
 			return "";
 		}
-		
+
 		public static SendType toEnum(String str) {
 			if (str.equals("准备完毕")) {
 				return SendType.READY;
@@ -676,22 +709,18 @@ public class Main extends JFrame {
 			return null;
 		}
 	}
-	
-	public static boolean isRegular (File f) {
-		return f.getName().endsWith(".doc") ||
-				f.getName().endsWith(".docx") ||
-				f.getName().endsWith(".rtf") ||
-				f.getName().endsWith(".txt") ||
-				f.getName().endsWith(".mobi") ||
-				f.getName().endsWith(".pdf");
+
+	public static boolean isRegular(File f) {
+		return f.getName().endsWith(".doc") || f.getName().endsWith(".docx")
+				|| f.getName().endsWith(".rtf") || f.getName().endsWith(".txt")
+				|| f.getName().endsWith(".mobi")
+				|| f.getName().endsWith(".pdf")
+				|| f.getName().endsWith(".epub");
 	}
-	
-	public static boolean isRegular (String f) {
-		return f.endsWith(".doc") ||
-				f.endsWith(".docx") ||
-				f.endsWith(".rtf") ||
-				f.endsWith(".txt") ||
-				f.endsWith(".mobi") ||
-				f.endsWith(".pdf");
+
+	public static boolean isRegular(String f) {
+		return f.endsWith(".doc") || f.endsWith(".docx") || f.endsWith(".rtf")
+				|| f.endsWith(".txt") || f.endsWith(".mobi")
+				|| f.endsWith(".pdf") || f.endsWith(".epub");
 	}
 }

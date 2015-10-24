@@ -42,6 +42,9 @@ public class MissionManager {
 			mList.get(todoList.get(0)).start();
 			running = true;
 		}
+		if (todoList.isEmpty()) {
+			return;
+		}
 		Main.des4.setText("执行中，已完成" + (mList.size() - todoList.size()) + "件，剩余" 
 				+ todoList.size() + "件");
 		Main.missionFrame.redraw();
@@ -111,10 +114,13 @@ public class MissionManager {
 	@SuppressWarnings("deprecation")
 	public void pause () {
 		this.mList.get(this.todoList.get(0)).suspend();
+		Main.des4.setText("已暂停");
 	}
 	
 	@SuppressWarnings("deprecation")
 	public void resume () {
 		this.mList.get(this.todoList.get(0)).resume();
+		Main.des4.setText("执行中，已完成" + (mList.size() - todoList.size()) + "件，剩余" 
+				+ todoList.size() + "件");
 	}
 }
