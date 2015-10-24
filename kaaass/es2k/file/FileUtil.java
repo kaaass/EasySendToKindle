@@ -201,38 +201,82 @@ public class FileUtil {
 			new File(filePath).mkdir();
 		}
 	}
-	
-	/** 
-	 * 删除目录（文件夹）以及目录下的文件 
-	 * @param   sPath 被删除目录的文件路径 
-	 * @return  目录删除成功返回true，否则返回false 
-	 */  
-	public static boolean deleteDirectory(String sPath) {  
+
+	/**
+	 * 删除目录（文件夹）以及目录下的文件
+	 * 
+	 * @param sPath
+	 *            被删除目录的文件路径
+	 * @return 目录删除成功返回true，否则返回false
+	 */
+	public static boolean deleteDirectory(String sPath) {
 		boolean flag = false;
-	    if (!sPath.endsWith(File.separator)) {  
-	        sPath = sPath + File.separator;  
-	    }  
-	    File dirFile = new File(sPath);  
-	    if (!dirFile.exists() || !dirFile.isDirectory()) {  
-	        return false;  
-	    }  
-	    flag = true;  
-	    File[] files = dirFile.listFiles();  
-	    for (int i = 0; i < files.length; i++) {  
-	        if (files[i].isFile()) {  
-	            flag = files[i].delete(); 
-	            if (!flag) break;  
-	        }  
-	        else {  
-	            flag = deleteDirectory(files[i].getAbsolutePath());  
-	            if (!flag) break;  
-	        }  
-	    }  
-	    if (!flag) return false;  
-	    if (dirFile.delete()) {  
-	        return true;  
-	    } else {  
-	        return false;  
-	    }  
-	}  
+		if (!sPath.endsWith(File.separator)) {
+			sPath = sPath + File.separator;
+		}
+		File dirFile = new File(sPath);
+		if (!dirFile.exists() || !dirFile.isDirectory()) {
+			return false;
+		}
+		flag = true;
+		File[] files = dirFile.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			if (files[i].isFile()) {
+				flag = files[i].delete();
+				if (!flag)
+					break;
+			} else {
+				flag = deleteDirectory(files[i].getAbsolutePath());
+				if (!flag)
+					break;
+			}
+		}
+		if (!flag)
+			return false;
+		if (dirFile.delete()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public static boolean pdf2html(String[] command, String pdfName,
+			String htmlName) {
+		Runtime rt = Runtime.getRuntime();
+		try {
+			File f = new File(htmlName);
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			if (command == null) {
+				command = new String[0];
+			}
+			String[] cmd = new String[3 + command.length];
+			cmd[0] = ".\\lib\\pdf2htmlEX.exe";
+			System.arraycopy(command, 0, cmd, 1, command.length);
+			cmd[command.length + 1] = pdfName;
+			cmd[command.length + 2] = htmlName;
+			Process p = rt.exec(cmd);
+			StreamGobbler errorGobbler = new StreamGobbler(p.getErrorStream(),
+					"ERROR");
+			errorGobbler.start();
+			StreamGobbler outGobbler = new StreamGobbler(p.getInputStream(),
+					"STDOUT");
+			outGobbler.start();
+			int w = p.waitFor();
+			System.out.println(w);
+			int v = p.exitValue();
+			System.out.println(v);
+			if (v == 1) {
+				String e = "\nError:\n" + errorGobbler.getOut()
+						+ "\nOut:\n" + outGobbler.getOut();
+				(new ErrorUtil(e)).dealWithResult();
+			}
+			return v == 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			(new ErrorUtil(e)).dealWithException();
+		}
+		return false;
+	}
 }
