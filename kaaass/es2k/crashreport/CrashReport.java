@@ -13,7 +13,11 @@ public class CrashReport {
 	private String description = null;
 	SimpleDateFormat timeF = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
 	SimpleDateFormat timeF2 = new SimpleDateFormat("日期:yyyy-MM-dd 时间:HH:mm:ss");
-
+	
+	public CrashReport(String e) {
+		this(null, e);
+	}
+	
 	public CrashReport(Throwable e) {
 		this(e, e.toString());
 	}
@@ -43,15 +47,23 @@ public class CrashReport {
 			stringbuilder.append(timeF2.format(new Date()));
 			stringbuilder.append("\n");
 			stringbuilder.append("描述:");
-			if (description == null) {
-				stringbuilder.append(e.toString());
+			if (e != null) {
+				if (description == null) {
+					stringbuilder.append(e.toString());
+				} else {
+					stringbuilder.append(this.description);
+				}
 			} else {
-				stringbuilder.append(this.description);
+				stringbuilder.append("未知错误");
 			}
 			stringbuilder.append("\n\n");
 			stringbuilder.append("#以下是错误信息:");
 			stringbuilder.append("\n\n");
-			stringbuilder.append(getCauseStackTraceOrString());
+			if (e != null) {
+				stringbuilder.append(getCauseStackTraceOrString());
+			} else {
+				stringbuilder.append(this.description);
+			}
 			stringbuilder.append("----------------------------------------");
 			fileWriter.write(stringbuilder.toString());
 			fileWriter.close();

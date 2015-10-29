@@ -130,9 +130,11 @@ public class MissionFrame extends JFrame {
 					if (pauseBtn.getText().equals("暂停")) {
 						pauseBtn.setText("恢复");
 						Main.missionManager.pause();
+						setTitle("任务视图（已暂停）");
 					} else {
 						pauseBtn.setText("暂停");
 						Main.missionManager.resume();
+						setTitle("任务视图");
 					}
 				}
 			}
