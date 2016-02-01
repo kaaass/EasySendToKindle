@@ -301,7 +301,7 @@ public class Main extends JFrame {
 			public void actionPerformed(ActionEvent evt) {
 				JOptionPane.showMessageDialog(null, "关于"
 						+ "\n程序名:Easy Send To Kindle" + "\n作者:KAAAsS"
-						+ "\n版本:1.1.0.1002_beta" + "\n建立于Java 1.6"
+						+ "\n版本:1.1.0.1024_beta" + "\n建立于Java 1.6"
 						+ "\nGitHub地址:github.com/kaaass/EasySendToKindle"
 						+ "\n欢迎有能力的朋友来fork。" + "\n感谢网易、新浪邮箱的服务支持。", "关于",
 						JOptionPane.INFORMATION_MESSAGE);
